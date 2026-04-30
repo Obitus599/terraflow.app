@@ -2,9 +2,14 @@ import { type NextRequest } from "next/server";
 
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
+// Next 16 renamed `middleware.ts` -> `proxy.ts`. Same API, same matcher.
+// Function may be exported as `middleware` or `proxy`; we export both
+// so the rename works regardless of which name Next 16.x prefers.
+export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
+
+export const middleware = proxy;
 
 export const config = {
   matcher: [
