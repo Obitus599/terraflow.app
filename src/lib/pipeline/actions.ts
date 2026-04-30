@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import {
@@ -12,7 +11,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult =
-  | { ok: true }
+  | { ok: true; id?: string }
   | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
 
 function emptyToNull(value: string | undefined): string | null {
@@ -52,14 +51,16 @@ export async function addDeal(input: DealInput): Promise<ActionResult> {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("pipeline_deals")
-    .insert(normalize(parsed.data));
+    .insert(normalize(parsed.data))
+    .select("id")
+    .single();
 
   if (error) return { ok: false, message: error.message };
 
   revalidatePath("/pipeline");
-  redirect("/pipeline");
+  return { ok: true, id: data.id };
 }
 
 export async function updateDeal(
@@ -123,5 +124,5 @@ export async function deleteDeal(id: string): Promise<ActionResult> {
   if (error) return { ok: false, message: error.message };
 
   revalidatePath("/pipeline");
-  redirect("/pipeline");
+  return { ok: true };
 }

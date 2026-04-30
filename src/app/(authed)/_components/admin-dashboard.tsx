@@ -332,7 +332,7 @@ function PriorityCard({
 }) {
   return (
     <Link
-      href={`/tasks/${task.id}/edit`}
+      href={`/tasks?edit=${task.id}`}
       className="group flex items-start justify-between gap-3 rounded-xl border border-line bg-bg-2 px-5 py-4 transition-colors hover:border-text-3"
     >
       <div className="flex min-w-0 items-start gap-3">

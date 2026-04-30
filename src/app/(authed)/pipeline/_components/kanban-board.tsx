@@ -171,7 +171,7 @@ function DealCard({
         </button>
         <div className="min-w-0 flex-1">
           <Link
-            href={`/pipeline/${deal.id}/edit`}
+            href={`/pipeline?edit=${deal.id}`}
             className="block min-w-0"
           >
             <p className="truncate text-sm font-medium text-text group-hover:text-accent">

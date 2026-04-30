@@ -39,6 +39,9 @@ interface DealFormProps {
   initial?: Partial<DealInput>;
   owners: { id: string; full_name: string }[];
   canDelete: boolean;
+  /** Called after a successful save / delete. Sheet uses this to close while
+   *  preserving the user's view (kanban vs filter state). */
+  onSuccess?: () => void;
 }
 
 const NONE = "__none__";
@@ -49,6 +52,7 @@ export function DealForm({
   initial,
   owners,
   canDelete,
+  onSuccess,
 }: DealFormProps) {
   const router = useRouter();
   const [isSaving, startSaving] = useTransition();
@@ -103,8 +107,9 @@ export function DealForm({
       }
 
       toast.success(mode === "create" ? "Deal created" : "Deal updated");
-      if (mode === "edit") {
-        router.push("/pipeline");
+      if (onSuccess) {
+        onSuccess();
+      } else {
         router.refresh();
       }
     });
@@ -115,7 +120,16 @@ export function DealForm({
     if (!confirm("Delete this deal? This can't be undone.")) return;
     startDeleting(async () => {
       const result = await deleteDeal(dealId);
-      if (!result.ok) toast.error(result.message);
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success("Deal deleted");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.refresh();
+      }
     });
   }
 

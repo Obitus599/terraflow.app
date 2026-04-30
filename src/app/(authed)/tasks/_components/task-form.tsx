@@ -34,6 +34,10 @@ interface TaskFormProps {
   owners: { id: string; full_name: string }[];
   clients: { id: string; name: string }[];
   canDelete: boolean;
+  /** Called after a successful save / delete. The host (sheet or page) decides
+   *  what to do next (close the sheet preserving filter params, navigate
+   *  away, etc.). If omitted, the form just calls router.refresh(). */
+  onSuccess?: () => void;
 }
 
 const NONE = "__none__";
@@ -45,6 +49,7 @@ export function TaskForm({
   owners,
   clients,
   canDelete,
+  onSuccess,
 }: TaskFormProps) {
   const router = useRouter();
   const [isSaving, startSaving] = useTransition();
@@ -91,8 +96,9 @@ export function TaskForm({
       }
 
       toast.success(mode === "create" ? "Task created" : "Task updated");
-      if (mode === "edit") {
-        router.push("/tasks");
+      if (onSuccess) {
+        onSuccess();
+      } else {
         router.refresh();
       }
     });
@@ -103,7 +109,16 @@ export function TaskForm({
     if (!confirm("Delete this task? This can't be undone.")) return;
     startDeleting(async () => {
       const result = await deleteTask(taskId);
-      if (!result.ok) toast.error(result.message);
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success("Task deleted");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.refresh();
+      }
     });
   }
 

@@ -136,7 +136,7 @@ export async function TeamDashboard({ firstName, userId }: TeamDashboardProps) {
               return (
                 <li key={t.id}>
                   <Link
-                    href={`/tasks/${t.id}/edit`}
+                    href={`/tasks?edit=${t.id}`}
                     className="flex items-center justify-between gap-3 px-5 py-4 transition-colors hover:bg-bg-3"
                   >
                     <div className="min-w-0">

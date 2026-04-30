@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
@@ -12,7 +11,7 @@ import {
 } from "@/lib/tasks/schema";
 
 export type ActionResult =
-  | { ok: true }
+  | { ok: true; id?: string }
   | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
 
 function emptyToNull(value: string | undefined): string | null {
@@ -58,7 +57,7 @@ export async function addTask(input: TaskInput): Promise<ActionResult> {
   if (error) return { ok: false, message: error.message };
 
   revalidatePath("/tasks");
-  redirect(`/tasks?highlight=${data.id}`);
+  return { ok: true, id: data.id };
 }
 
 export async function updateTask(
@@ -121,5 +120,5 @@ export async function deleteTask(id: string): Promise<ActionResult> {
   if (error) return { ok: false, message: error.message };
 
   revalidatePath("/tasks");
-  redirect("/tasks");
+  return { ok: true };
 }

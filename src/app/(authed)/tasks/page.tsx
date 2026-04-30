@@ -18,10 +18,12 @@ import { createClient } from "@/lib/supabase/server";
 import {
   TASK_PRIORITY_LABELS,
   TASK_PRIORITY_TONE,
+  type TaskInput,
 } from "@/lib/tasks/schema";
 import { cn } from "@/lib/utils";
 
 import { TaskFilters } from "./_components/task-filters";
+import { TaskSheet } from "./_components/task-sheet";
 import { TaskStatusCell } from "./_components/task-status-cell";
 
 export const metadata = { title: "Tasks" };
@@ -34,6 +36,27 @@ interface SearchParams {
   client?: string;
   due?: string;
   highlight?: string;
+  edit?: string;
+  new?: string;
+}
+
+const FILTER_KEYS = ["q", "status", "priority", "owner", "client", "due"] as const;
+
+// Build a query string for the side-sheet open/close links that preserves
+// every filter the user has applied. Pass `merge` to add or override params,
+// or pass keysToDrop to strip them.
+function buildHref(
+  current: SearchParams,
+  merge: Record<string, string> = {},
+): string {
+  const next = new URLSearchParams();
+  for (const key of FILTER_KEYS) {
+    const value = current[key];
+    if (value && value.length > 0) next.set(key, value);
+  }
+  for (const [k, v] of Object.entries(merge)) next.set(k, v);
+  const qs = next.toString();
+  return qs ? `/tasks?${qs}` : "/tasks";
 }
 
 export default async function TasksPage({
@@ -53,7 +76,7 @@ export default async function TasksPage({
   let query = supabase
     .from("tasks")
     .select(
-      "id, title, status, priority, due_date, estimated_hours, actual_hours, client_id, owner_id, category, created_at",
+      "id, title, status, priority, due_date, estimated_hours, actual_hours, client_id, owner_id, category, notes, created_at",
     );
 
   if (params.q && params.q.trim().length > 0) {
@@ -116,6 +139,30 @@ export default async function TasksPage({
     blocked: (tasks ?? []).filter((t) => t.status === "blocked").length,
   };
 
+  // Side-sheet open state derived from URL. Edit takes precedence over new.
+  const editingTask =
+    params.edit && tasks
+      ? tasks.find((t) => t.id === params.edit) ?? null
+      : null;
+  const sheetMode: "create" | "edit" | "closed" =
+    editingTask ? "edit" : params.new === "1" ? "create" : "closed";
+  const sheetInitial: Partial<TaskInput> | undefined = editingTask
+    ? {
+        title: editingTask.title,
+        owner_id: editingTask.owner_id,
+        client_id: editingTask.client_id ?? "",
+        status: editingTask.status as TaskInput["status"],
+        priority: editingTask.priority as TaskInput["priority"],
+        due_date: editingTask.due_date ?? "",
+        estimated_hours: Number(editingTask.estimated_hours),
+        actual_hours: Number(editingTask.actual_hours),
+        notes: editingTask.notes ?? "",
+        category: editingTask.category ?? "",
+      }
+    : sheetMode === "create"
+      ? { owner_id: user!.id }
+      : undefined;
+
   return (
     <>
       <PageHeader
@@ -124,7 +171,7 @@ export default async function TasksPage({
         description={`${counts.open} open · ${counts.overdue} overdue · ${counts.blocked} blocked`}
         actions={
           <Button asChild>
-            <Link href="/tasks/new">
+            <Link href={buildHref(params, { new: "1" })}>
               <Plus className="mr-1 h-4 w-4" />
               New task
             </Link>
@@ -146,7 +193,7 @@ export default async function TasksPage({
             Failed to load tasks: {error.message}
           </p>
         ) : !tasks || tasks.length === 0 ? (
-          <EmptyState />
+          <EmptyState newHref={buildHref(params, { new: "1" })} />
         ) : (
           <div className="overflow-x-auto rounded-xl border border-line bg-bg-2">
             <Table>
@@ -172,6 +219,7 @@ export default async function TasksPage({
                     t.due_date < format(today, "yyyy-MM-dd") &&
                     t.status !== "done";
                   const highlighted = params.highlight === t.id;
+                  const editHref = buildHref(params, { edit: t.id });
 
                   return (
                     <TableRow
@@ -182,7 +230,12 @@ export default async function TasksPage({
                       )}
                     >
                       <TableCell className="max-w-[280px]">
-                        <p className="truncate text-sm text-text">{t.title}</p>
+                        <Link
+                          href={editHref}
+                          className="block min-w-0 truncate text-sm text-text hover:text-accent"
+                        >
+                          {t.title}
+                        </Link>
                         {t.category ? (
                           <p className="text-xs text-text-3">{t.category}</p>
                         ) : null}
@@ -235,7 +288,7 @@ export default async function TasksPage({
                       </TableCell>
                       <TableCell className="text-right">
                         <Button asChild variant="ghost" size="sm">
-                          <Link href={`/tasks/${t.id}/edit`}>
+                          <Link href={editHref}>
                             <Pencil className="h-3.5 w-3.5" />
                             <span className="sr-only">Edit</span>
                           </Link>
@@ -249,11 +302,23 @@ export default async function TasksPage({
           </div>
         )}
       </div>
+
+      <TaskSheet
+        mode={sheetMode}
+        taskId={editingTask?.id}
+        initial={sheetInitial}
+        owners={(profiles ?? []).map((p) => ({
+          id: p.id,
+          full_name: p.full_name,
+        }))}
+        clients={clients ?? []}
+        canDelete={isAdmin}
+      />
     </>
   );
 }
 
-function EmptyState() {
+function EmptyState({ newHref }: { newHref: string }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line bg-bg-2 px-6 py-16 text-center">
       <p className="font-display text-base text-text">No tasks match these filters</p>
@@ -261,7 +326,7 @@ function EmptyState() {
         Adjust the filters above, or add a new task to get the team moving.
       </p>
       <Button asChild className="mt-6">
-        <Link href="/tasks/new">
+        <Link href={newHref}>
           <Plus className="mr-1 h-4 w-4" />
           New task
         </Link>
