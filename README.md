@@ -77,13 +77,32 @@ The `SUPABASE_*` server-side vars are also needed for the CLI (`db:push`, `db:ty
 | Diff local schema vs remote | `pnpm db:diff` |
 | Add a new shadcn primitive | `pnpm dlx shadcn@latest add <name>` |
 
-## Adding a new team member
+## Authentication model
 
-1. Add their hardcoded role/capacity branch to the `handle_new_user()` function in a follow-up migration.
-2. Send them the magic-link from `/login`. The trigger creates their `profiles` row on first sign-in.
-3. Verify role with `select email, role from profiles` in the SQL editor.
+This is a closed app — only the 5 named team members can sign in. Auth uses **email + password** (no magic link, no open signup, no third-party providers).
 
-For the original 5: Alex (admin), Raj, Reeba, Ashish, Morty - all baked into the initial migration.
+To enforce this, in the Supabase dashboard:
+
+1. **Authentication → Providers → Email** — keep "Enable email provider" ON, but turn **OFF** "Enable email signups" (and any "Confirm email" requirement). This means no one can self-create an account; only admin-created users exist.
+2. **Authentication → Providers** — disable any other providers you don't use (GitHub, Google, etc.) for tidiness.
+
+## Creating users (admin)
+
+For the original 5 (Alex, Raj, Reeba, Ashish, Morty), do this once each in the Supabase dashboard:
+
+1. **Authentication → Users → Add user → Create new user**
+2. Email: `<name>@terraflow.studio`
+3. Password: pick or generate one; share securely (1Password, Bitwarden)
+4. **Auto Confirm User:** ON (skips the email-verify step)
+5. Click **Create user**
+
+The `handle_new_user()` trigger fires on every `auth.users` INSERT and creates the matching `profiles` row with the correct role (admin/team) and capacity baked in. Verify with:
+
+```sql
+select email, role, monthly_capacity_hours from public.profiles order by role desc, full_name;
+```
+
+To add a 6th person later: edit `handle_new_user()` in a follow-up migration to add a CASE branch for their email, push it (`pnpm db:push`), then create them in the dashboard.
 
 ## Brand system
 
@@ -138,26 +157,18 @@ Vercel will build and host. The repo is connected via the Vercel dashboard (no C
 6. Click **Deploy**. First deploy takes ~3 minutes.
 7. Note the assigned URL (e.g. `terraflow-app-xyz.vercel.app`).
 
-### Wire up auth + custom domain
+### Custom domain + branch protection
 
-1. In Supabase dashboard → **Auth → URL Configuration**:
-    - **Site URL:** `https://app.terraflow.studio` (or your Vercel URL until domain is wired)
-    - **Redirect URLs:** add all three
-        - `http://localhost:3000/auth/callback`
-        - `https://app.terraflow.studio/auth/callback`
-        - `https://*.vercel.app/auth/callback` (covers preview deploys)
+1. **Custom domain (optional, recommended):** in Vercel project → Settings → Domains → add `app.terraflow.studio`. Then in GoDaddy DNS, add a CNAME: `app` → `cname.vercel-dns.com`. Vercel auto-issues the SSL cert.
+2. **Branch protection:** in GitHub repo → Settings → Branches → add a rule for `main` that requires PRs and passing checks.
 
-2. **Custom domain (optional, recommended):** in Vercel project → Settings → Domains → add `app.terraflow.studio`. Then in GoDaddy DNS, add a CNAME: `app` → `cname.vercel-dns.com`. Vercel auto-issues the SSL cert.
-
-3. **Branch protection:** in GitHub repo → Settings → Branches → add a rule for `main` that requires PRs and passing checks.
-
-After step 1, magic-link sign-in works in production. Vercel auto-deploys on every push to `main`.
+No Supabase URL / redirect URL configuration is needed — password auth doesn't use email callbacks.
 
 ### Smoke test after deploy
 
 - Visit the production URL → redirected to `/login`.
-- Enter `alex@terraflow.studio`, click "Send magic link", check inbox, click the link.
-- Land on the admin dashboard with the seeded MRR (AED 3,000), 33 prospects in `/pipeline`, 4 clients in `/clients`.
+- Enter `alex@terraflow.studio` + the password you set in Supabase → land on the admin dashboard.
+- The seeded MRR (AED 3,000), 33 prospects in `/pipeline`, 4 clients in `/clients` should all be visible.
 
 ## What ships next
 

@@ -23,7 +23,7 @@ export default function LoginPage() {
           Sign in
         </h1>
         <p className="mb-8 text-text-3">
-          Use your TerraFlow email — we&apos;ll send a magic link.
+          Use the credentials Alex set up for you.
         </p>
 
         <LoginForm />

@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,57 +12,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 
-const ALLOWED_DOMAIN = "@terraflow.studio";
-
 const schema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Enter a valid email")
-    .refine(
-      (val) => val.toLowerCase().endsWith(ALLOWED_DOMAIN),
-      `Must be a ${ALLOWED_DOMAIN} address`,
-    ),
+  email: z.email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type FormValues = z.infer<typeof schema>;
 
 export function LoginForm() {
-  const [sent, setSent] = useState<string | null>(null);
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "" },
+    defaultValues: { email: "", password: "" },
   });
 
-  async function onSubmit({ email }: FormValues) {
+  async function onSubmit({ email, password }: FormValues) {
     setServerError(null);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      password,
     });
     if (error) {
       setServerError(error.message);
       return;
     }
-    setSent(email);
-  }
-
-  if (sent) {
-    return (
-      <div className="rounded-xl border border-line bg-bg-2 p-6">
-        <CheckCircle2 className="mb-3 h-5 w-5 text-success" />
-        <p className="mb-1 font-display text-base text-text">Check your inbox</p>
-        <p className="text-sm text-text-3">
-          We sent a magic link to <span className="text-text">{sent}</span>. Click
-          it to sign in. The link expires in 1 hour.
-        </p>
-      </div>
-    );
+    router.push("/");
+    router.refresh();
   }
 
   return (
@@ -85,6 +64,24 @@ export function LoginForm() {
         ) : null}
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="password" className="text-text-2">
+          Password
+        </Label>
+        <Input
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          disabled={form.formState.isSubmitting}
+          {...form.register("password")}
+        />
+        {form.formState.errors.password ? (
+          <p className="text-xs text-danger">
+            {form.formState.errors.password.message}
+          </p>
+        ) : null}
+      </div>
+
       {serverError ? (
         <p className="text-xs text-danger">{serverError}</p>
       ) : null}
@@ -94,9 +91,13 @@ export function LoginForm() {
         disabled={form.formState.isSubmitting}
         className="w-full"
       >
-        {form.formState.isSubmitting ? "Sending…" : "Send magic link"}
+        {form.formState.isSubmitting ? "Signing in…" : "Sign in"}
         <ArrowRight className="ml-1 h-4 w-4" />
       </Button>
+
+      <p className="pt-2 text-center text-xs text-text-3">
+        Forgot your password? Ask Alex to reset it from the Supabase dashboard.
+      </p>
     </form>
   );
 }
