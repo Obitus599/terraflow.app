@@ -3,11 +3,36 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { createClient } from "@/lib/supabase/server";
 
-// TEMPORARY DIAGNOSTIC: wraps the data-fetch + render in try/catch and
-// surfaces the actual error string inline. Errors in the layout escape
-// (authed)/error.tsx (per Next docs — error boundaries don't catch errors
-// in their own segment's layout) and only get caught by global-error.tsx,
-// which strips the message in production. This makes them visible.
+// Authed routes are inherently dynamic — they read cookies for the
+// session — so opt out of any prerender attempt up-front. Belt-and-braces:
+// even though the layout uses cookies() (which already makes the route
+// dynamic), this prevents Next 16 from logging DynamicServerError during
+// the static-analysis pass.
+export const dynamic = "force-dynamic";
+
+// Errors thrown during a layout's render escape its segment's error.tsx
+// and only get caught by global-error.tsx — which strips the message in
+// production. We wrap data-fetching here so we can render a useful error
+// inline instead of the generic "Application error" screen.
+//
+// CRITICAL: redirect(), notFound(), and Next's DynamicServerError signals
+// are control flow, not actual errors. They MUST be re-thrown or the
+// framework breaks (redirects don't fire, dynamic routes get baked into
+// stale prerenders, etc.).
+const NEXT_INTERNAL_DIGESTS = [
+  "NEXT_REDIRECT",
+  "NEXT_NOT_FOUND",
+  "NEXT_HTTP_ERROR_FALLBACK",
+  "DYNAMIC_SERVER_USAGE",
+];
+
+function isNextInternalError(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false;
+  const digest = (e as { digest?: unknown }).digest;
+  if (typeof digest !== "string") return false;
+  return NEXT_INTERNAL_DIGESTS.some((prefix) => digest.startsWith(prefix));
+}
+
 export default async function AuthedLayout({
   children,
 }: {
@@ -44,18 +69,7 @@ export default async function AuthedLayout({
 
     return <AppShell profile={profile}>{children}</AppShell>;
   } catch (e) {
-    // redirect() throws a NEXT_REDIRECT error that we MUST re-throw —
-    // catching it here would break the redirect.
-    if (
-      e &&
-      typeof e === "object" &&
-      "digest" in e &&
-      typeof (e as { digest: unknown }).digest === "string" &&
-      ((e as { digest: string }).digest.startsWith("NEXT_REDIRECT") ||
-        (e as { digest: string }).digest.startsWith("NEXT_NOT_FOUND"))
-    ) {
-      throw e;
-    }
+    if (isNextInternalError(e)) throw e;
 
     const message = e instanceof Error ? e.message : String(e);
     const stack = e instanceof Error ? (e.stack ?? "(no stack)") : "(no stack)";
