@@ -154,6 +154,6 @@ export const config = {
      * - favicon.ico, robots.txt, sitemap.xml, manifest.webmanifest
      * - any file with an extension (svg, png, woff2, etc.)
      */
-    "/((?!_next/static|_next/image|api/health|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|.*\\.[^/]+$).*)",
+    "/((?!_next/static|_next/image|api/health|api/diagnostic|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|.*\\.[^/]+$).*)",
   ],
 };
