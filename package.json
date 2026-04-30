@@ -11,6 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium",
     "db:types": "supabase gen types typescript --project-id ocnaoeaiqebtoizbjlni > src/types/database.ts",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset --linked",
@@ -42,6 +44,7 @@
     "zod": "^4.4.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
