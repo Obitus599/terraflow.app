@@ -117,15 +117,47 @@ Long-term recommendation: move the whole repo to `C:\dev\terraflow-app\` and ski
 
 ## Deployment
 
-Not yet wired. Plan:
+Vercel will build and host. The repo is connected via the Vercel dashboard (no CLI needed).
 
-1. `vercel link` to bind this repo to a Vercel project (`terraflow-ops`).
-2. In the Vercel dashboard, set the same env vars as `.env.local` (omit `SUPABASE_DB_PASSWORD` and `SUPABASE_ACCESS_TOKEN` - those are CLI-only).
-3. In the Supabase dashboard, add `https://app.terraflow.studio/auth/callback` to the allowed redirect URLs (Auth, URL Configuration).
-4. In GoDaddy, point `app.terraflow.studio` CNAME to `cname.vercel-dns.com`.
-5. Enable branch protection on `main` (require PR + checks).
+### First deploy
 
-Vercel auto-deploys on push to `main`.
+1. Go to <https://vercel.com/new> and "Import Git Repository" → select `Obitus599/terraflow.app`.
+2. **Framework preset:** Next.js (auto-detected).
+3. **Root directory:** `./` (default).
+4. **Build command:** `next build` (default). On Vercel, Turbopack works fine — no need to override.
+5. **Environment variables** — paste these three (production scope):
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://ocnaoeaiqebtoizbjlni.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from Supabase, Settings, API>
+   SUPABASE_SERVICE_ROLE_KEY=<service_role key from same page>
+   ```
+
+   Do NOT add `SUPABASE_ACCESS_TOKEN` or `SUPABASE_DB_PASSWORD` — those are CLI-only and don't belong in runtime env.
+
+6. Click **Deploy**. First deploy takes ~3 minutes.
+7. Note the assigned URL (e.g. `terraflow-app-xyz.vercel.app`).
+
+### Wire up auth + custom domain
+
+1. In Supabase dashboard → **Auth → URL Configuration**:
+    - **Site URL:** `https://app.terraflow.studio` (or your Vercel URL until domain is wired)
+    - **Redirect URLs:** add all three
+        - `http://localhost:3000/auth/callback`
+        - `https://app.terraflow.studio/auth/callback`
+        - `https://*.vercel.app/auth/callback` (covers preview deploys)
+
+2. **Custom domain (optional, recommended):** in Vercel project → Settings → Domains → add `app.terraflow.studio`. Then in GoDaddy DNS, add a CNAME: `app` → `cname.vercel-dns.com`. Vercel auto-issues the SSL cert.
+
+3. **Branch protection:** in GitHub repo → Settings → Branches → add a rule for `main` that requires PRs and passing checks.
+
+After step 1, magic-link sign-in works in production. Vercel auto-deploys on every push to `main`.
+
+### Smoke test after deploy
+
+- Visit the production URL → redirected to `/login`.
+- Enter `alex@terraflow.studio`, click "Send magic link", check inbox, click the link.
+- Land on the admin dashboard with the seeded MRR (AED 3,000), 33 prospects in `/pipeline`, 4 clients in `/clients`.
 
 ## What ships next
 
