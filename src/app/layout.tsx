@@ -27,6 +27,16 @@ export const metadata: Metadata = {
   description: "Internal operations console for TerraFlow.Studio.",
   applicationName: "TerraFlow Ops",
   robots: { index: false, follow: false },
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-touch-icon.svg", sizes: "180x180" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "TerraFlow",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {

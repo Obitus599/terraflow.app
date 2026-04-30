@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/app-shell";
+import { RealtimeRefresher } from "@/components/realtime-refresher";
 import { createClient } from "@/lib/supabase/server";
 
 // Authed routes are inherently dynamic — they read cookies for the session.
@@ -96,5 +97,10 @@ export default async function AuthedLayout({
     );
   }
 
-  return <AppShell profile={profile!}>{children}</AppShell>;
+  return (
+    <>
+      <RealtimeRefresher />
+      <AppShell profile={profile!}>{children}</AppShell>
+    </>
+  );
 }

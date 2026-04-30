@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <rect width="180" height="180" rx="34" fill="#D4FF3D"/>
+  <text x="90" y="114" text-anchor="middle" fill="#0A0A0A"
+        font-family="Lexend, system-ui, -apple-system, Segoe UI, sans-serif"
+        font-weight="600" font-size="100" letter-spacing="-4">T</text>
+</svg>
