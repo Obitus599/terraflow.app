@@ -26,9 +26,21 @@ export function Sidebar({ profile }: SidebarProps) {
       </Link>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        {items.map((item) => (
-          <NavLink key={item.href} {...item} />
-        ))}
+        {items.map((item) => {
+          // Render the icon to JSX server-side. Passing the component
+          // reference (a forwardRef function object) to NavLink, which
+          // is a client component, would violate the RSC boundary.
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              exact={item.exact}
+              icon={<Icon className="h-4 w-4" />}
+            />
+          );
+        })}
       </nav>
 
       <div className="border-t border-line p-3">

@@ -1,19 +1,22 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
 interface NavLinkProps {
   href: string;
   label: string;
-  icon: LucideIcon;
+  // Pre-rendered JSX, not a component reference. Server components can't
+  // pass function values (forwardRef icons included) across the RSC
+  // boundary; pre-rendering on the server side avoids that violation.
+  icon: ReactNode;
   exact?: boolean;
 }
 
-export function NavLink({ href, label, icon: Icon, exact = false }: NavLinkProps) {
+export function NavLink({ href, label, icon, exact = false }: NavLinkProps) {
   const pathname = usePathname();
   const active = exact
     ? pathname === href
@@ -29,7 +32,7 @@ export function NavLink({ href, label, icon: Icon, exact = false }: NavLinkProps
           : "text-text-2 hover:bg-bg-3 hover:text-text",
       )}
     >
-      <Icon className="h-4 w-4" />
+      {icon}
       {label}
     </Link>
   );
