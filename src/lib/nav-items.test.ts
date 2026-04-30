@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { visibleNavItems } from "./nav-items";
 
 describe("visibleNavItems", () => {
-  it("returns the live core for a team member", () => {
+  it("returns the full core for a team member (no /settings)", () => {
     const items = visibleNavItems("team");
     const hrefs = items.map((i) => i.href);
     expect(hrefs).toEqual([
@@ -14,10 +14,12 @@ describe("visibleNavItems", () => {
       "/revenue",
       "/cash-flow",
       "/cold-email",
+      "/team",
+      "/goals",
     ]);
   });
 
-  it("returns the live core plus /settings for admin", () => {
+  it("returns the full core plus /settings for admin", () => {
     const items = visibleNavItems("admin");
     expect(items.map((i) => i.href)).toEqual([
       "/",
@@ -27,17 +29,13 @@ describe("visibleNavItems", () => {
       "/revenue",
       "/cash-flow",
       "/cold-email",
+      "/team",
+      "/goals",
       "/settings",
     ]);
   });
 
-  it("hides comingSoon items from everyone", () => {
-    const adminHrefs = visibleNavItems("admin").map((i) => i.href);
-    expect(adminHrefs).not.toContain("/team");
-    expect(adminHrefs).not.toContain("/goals");
-  });
-
-  it("hides /settings from team", () => {
+  it("hides /settings from team (admin-only)", () => {
     const teamHrefs = visibleNavItems("team").map((i) => i.href);
     expect(teamHrefs).not.toContain("/settings");
   });

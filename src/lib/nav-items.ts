@@ -29,8 +29,8 @@ const ALL_ITEMS: NavItem[] = [
   { href: "/revenue", label: "Revenue", icon: TrendingUp },
   { href: "/cash-flow", label: "Cash flow", icon: Wallet },
   { href: "/cold-email", label: "Cold email", icon: Mail },
-  { href: "/team", label: "Team", icon: Users, comingSoon: true },
-  { href: "/goals", label: "Goals", icon: Target, comingSoon: true },
+  { href: "/team", label: "Team", icon: Users },
+  { href: "/goals", label: "Goals", icon: Target },
   { href: "/settings", label: "Settings", icon: Settings, adminOnly: true },
 ];
 
