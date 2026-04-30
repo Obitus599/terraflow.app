@@ -31,7 +31,7 @@ const ALL_ITEMS: NavItem[] = [
   { href: "/cold-email", label: "Cold email", icon: Mail },
   { href: "/team", label: "Team", icon: Users, comingSoon: true },
   { href: "/goals", label: "Goals", icon: Target, comingSoon: true },
-  { href: "/settings", label: "Settings", icon: Settings, adminOnly: true, comingSoon: true },
+  { href: "/settings", label: "Settings", icon: Settings, adminOnly: true },
 ];
 
 export function visibleNavItems(role: string): NavItem[] {

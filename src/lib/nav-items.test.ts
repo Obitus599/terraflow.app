@@ -17,7 +17,7 @@ describe("visibleNavItems", () => {
     ]);
   });
 
-  it("returns the same set for admin (admin-only items still gated by comingSoon for now)", () => {
+  it("returns the live core plus /settings for admin", () => {
     const items = visibleNavItems("admin");
     expect(items.map((i) => i.href)).toEqual([
       "/",
@@ -27,6 +27,7 @@ describe("visibleNavItems", () => {
       "/revenue",
       "/cash-flow",
       "/cold-email",
+      "/settings",
     ]);
   });
 
@@ -34,7 +35,11 @@ describe("visibleNavItems", () => {
     const adminHrefs = visibleNavItems("admin").map((i) => i.href);
     expect(adminHrefs).not.toContain("/team");
     expect(adminHrefs).not.toContain("/goals");
-    expect(adminHrefs).not.toContain("/settings");
+  });
+
+  it("hides /settings from team", () => {
+    const teamHrefs = visibleNavItems("team").map((i) => i.href);
+    expect(teamHrefs).not.toContain("/settings");
   });
 
   it("includes a Home item with exact matching", () => {
