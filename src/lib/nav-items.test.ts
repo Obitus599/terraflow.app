@@ -9,6 +9,7 @@ describe("visibleNavItems", () => {
     expect(hrefs).toEqual([
       "/",
       "/tasks",
+      "/calendar",
       "/pipeline",
       "/clients",
       "/revenue",
@@ -24,6 +25,7 @@ describe("visibleNavItems", () => {
     expect(items.map((i) => i.href)).toEqual([
       "/",
       "/tasks",
+      "/calendar",
       "/pipeline",
       "/clients",
       "/revenue",

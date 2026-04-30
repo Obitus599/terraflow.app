@@ -14,6 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
+      apollo_email_accounts: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_at_apollo: string | null
+          email: string
+          id: string
+          is_default: boolean
+          last_synced_at_apollo: string | null
+          provider: string
+          synced_at: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_at_apollo?: string | null
+          email: string
+          id: string
+          is_default?: boolean
+          last_synced_at_apollo?: string | null
+          provider: string
+          synced_at?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_at_apollo?: string | null
+          email?: string
+          id?: string
+          is_default?: boolean
+          last_synced_at_apollo?: string | null
+          provider?: string
+          synced_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      apollo_sequences: {
+        Row: {
+          active: boolean
+          archived: boolean
+          bounce_rate: number
+          click_rate: number
+          created_at: string
+          created_at_apollo: string | null
+          creation_type: string | null
+          id: string
+          is_performing_poorly: boolean
+          last_used_at: string | null
+          name: string
+          num_steps: number
+          open_rate: number
+          reply_rate: number
+          spam_block_rate: number
+          synced_at: string
+          unique_bounced: number
+          unique_clicked: number
+          unique_delivered: number
+          unique_hard_bounced: number
+          unique_opened: number
+          unique_replied: number
+          unique_scheduled: number
+          unique_spam_blocked: number
+          unique_unsubscribed: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          archived?: boolean
+          bounce_rate?: number
+          click_rate?: number
+          created_at?: string
+          created_at_apollo?: string | null
+          creation_type?: string | null
+          id: string
+          is_performing_poorly?: boolean
+          last_used_at?: string | null
+          name: string
+          num_steps?: number
+          open_rate?: number
+          reply_rate?: number
+          spam_block_rate?: number
+          synced_at?: string
+          unique_bounced?: number
+          unique_clicked?: number
+          unique_delivered?: number
+          unique_hard_bounced?: number
+          unique_opened?: number
+          unique_replied?: number
+          unique_scheduled?: number
+          unique_spam_blocked?: number
+          unique_unsubscribed?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          archived?: boolean
+          bounce_rate?: number
+          click_rate?: number
+          created_at?: string
+          created_at_apollo?: string | null
+          creation_type?: string | null
+          id?: string
+          is_performing_poorly?: boolean
+          last_used_at?: string | null
+          name?: string
+          num_steps?: number
+          open_rate?: number
+          reply_rate?: number
+          spam_block_rate?: number
+          synced_at?: string
+          unique_bounced?: number
+          unique_clicked?: number
+          unique_delivered?: number
+          unique_hard_bounced?: number
+          unique_opened?: number
+          unique_replied?: number
+          unique_scheduled?: number
+          unique_spam_blocked?: number
+          unique_unsubscribed?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           ashish_split_pct: number
@@ -259,6 +385,82 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "cold_email_entries_pipeline_deal_id_fkey"
+            columns: ["pipeline_deal_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          attendees: string | null
+          client_id: string | null
+          created_at: string
+          description: string | null
+          ends_at: string
+          external_calendar_id: string | null
+          external_event_id: string | null
+          id: string
+          location: string | null
+          notes: string | null
+          owner_id: string
+          pipeline_deal_id: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attendees?: string | null
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at: string
+          external_calendar_id?: string | null
+          external_event_id?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          owner_id: string
+          pipeline_deal_id?: string | null
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attendees?: string | null
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at?: string
+          external_calendar_id?: string | null
+          external_event_id?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          owner_id?: string
+          pipeline_deal_id?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_pipeline_deal_id_fkey"
             columns: ["pipeline_deal_id"]
             isOneToOne: false
             referencedRelation: "pipeline_deals"

@@ -1,5 +1,12 @@
-import { addDays, format, startOfToday, startOfWeek } from "date-fns";
-import { ArrowRight, Flame } from "lucide-react";
+import {
+  addDays,
+  format,
+  formatDistanceToNowStrict,
+  parseISO,
+  startOfToday,
+  startOfWeek,
+} from "date-fns";
+import { ArrowRight, CalendarDays, Flame, Mail } from "lucide-react";
 import Link from "next/link";
 
 import { AlarmRow } from "@/components/alarm-row";
@@ -41,6 +48,8 @@ export async function AdminDashboard({ firstName }: AdminDashboardProps) {
     { data: bank },
     { data: settings },
     { data: profiles },
+    { data: meetings },
+    { data: sequences },
   ] = await Promise.all([
     supabase
       .from("clients")
@@ -72,6 +81,22 @@ export async function AdminDashboard({ firstName }: AdminDashboardProps) {
     supabase
       .from("profiles")
       .select("id, full_name, monthly_capacity_hours"),
+    supabase
+      .from("meetings")
+      .select(
+        "id, title, starts_at, ends_at, location, attendees, pipeline_deal_id, client_id",
+      )
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(3),
+    supabase
+      .from("apollo_sequences")
+      .select(
+        "id, name, active, archived, unique_delivered, unique_opened, unique_replied, open_rate, reply_rate, bounce_rate, last_used_at",
+      )
+      .gte("unique_delivered", 10)
+      .order("open_rate", { ascending: false })
+      .limit(3),
   ]);
 
   // KPI: revenue
@@ -217,6 +242,110 @@ export async function AdminDashboard({ firstName }: AdminDashboardProps) {
           <KpiCard label="Done this week" value={String(doneThisWeek)} tone={doneThisWeek > 0 ? "success" : "default"} />
           <KpiCard label="Blocked" value={String(blocked)} tone={blocked > 0 ? "warning" : "default"} />
           <KpiCard label="Overdue" value={String(overdue)} tone={overdue > 0 ? "danger" : "default"} />
+        </div>
+      </section>
+
+      <section className="mt-10 grid gap-4 lg:grid-cols-2">
+        <div>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="section-label">Calendar · next 3</h2>
+            <Link
+              href="/calendar"
+              className="text-xs text-text-3 hover:text-accent"
+            >
+              All meetings →
+            </Link>
+          </div>
+          {meetings && meetings.length > 0 ? (
+            <ul className="space-y-2">
+              {meetings.map((m) => {
+                const start = parseISO(m.starts_at);
+                const rel = formatDistanceToNowStrict(start, {
+                  addSuffix: true,
+                });
+                return (
+                  <li key={m.id}>
+                    <Link
+                      href={`/calendar?edit=${m.id}`}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-line bg-bg-2 px-5 py-3.5 transition-colors hover:border-text-3"
+                    >
+                      <div className="flex min-w-0 items-start gap-3">
+                        <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-text-3" />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm text-text">
+                            {m.title}
+                          </p>
+                          <p className="text-xs text-text-3">
+                            {format(start, "EEE d MMM · HH:mm")} · {rel}
+                          </p>
+                        </div>
+                      </div>
+                      {m.location ? (
+                        <span className="hidden truncate text-xs text-text-3 sm:inline">
+                          {m.location}
+                        </span>
+                      ) : null}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="rounded-xl border border-line bg-bg-2 px-5 py-6 text-sm text-text-3">
+              No upcoming meetings.{" "}
+              <Link href="/calendar?new=1" className="text-accent">
+                Add one
+              </Link>
+              .
+            </p>
+          )}
+        </div>
+
+        <div>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="section-label">Apollo · top sequences</h2>
+            <Link
+              href="/cold-email"
+              className="text-xs text-text-3 hover:text-accent"
+            >
+              War room →
+            </Link>
+          </div>
+          {sequences && sequences.length > 0 ? (
+            <ul className="space-y-2">
+              {sequences.map((s) => (
+                <li key={s.id}>
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-bg-2 px-5 py-3.5">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <Mail className="mt-0.5 h-4 w-4 shrink-0 text-text-3" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm text-text">{s.name}</p>
+                        <p className="text-xs text-text-3">
+                          {s.unique_delivered} delivered ·{" "}
+                          {(s.open_rate * 100).toFixed(1)}% open ·{" "}
+                          {(s.reply_rate * 100).toFixed(2)}% reply
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={
+                        s.bounce_rate > 0.05
+                          ? "text-xs font-display text-danger"
+                          : "text-xs font-display text-text-3"
+                      }
+                    >
+                      {(s.bounce_rate * 100).toFixed(1)}% bounce
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="rounded-xl border border-line bg-bg-2 px-5 py-6 text-sm text-text-3">
+              No Apollo sequences with delivered email yet. Sync the account in
+              the cold-email war room.
+            </p>
+          )}
         </div>
       </section>
 

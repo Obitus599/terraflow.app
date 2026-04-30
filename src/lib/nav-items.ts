@@ -1,5 +1,6 @@
 import {
   Building2,
+  CalendarDays,
   CheckSquare,
   GitFork,
   LayoutDashboard,
@@ -24,6 +25,7 @@ export interface NavItem {
 const ALL_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: LayoutDashboard, exact: true },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/pipeline", label: "Pipeline", icon: GitFork },
   { href: "/clients", label: "Clients", icon: Building2 },
   { href: "/revenue", label: "Revenue", icon: TrendingUp },

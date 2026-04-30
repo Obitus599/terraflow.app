@@ -13,6 +13,9 @@ const REALTIME_TABLES = [
   "cold_email_entries",
   "clients",
   "bank_balance",
+  "meetings",
+  "apollo_sequences",
+  "apollo_email_accounts",
 ] as const;
 
 /**
