@@ -25,21 +25,24 @@ export async function GET() {
   // EVERYTHING wrapped — even synchronous throws and module-init errors
   // surface as JSON instead of an empty 500.
   try {
-    const supabase = await step(async () => {
-      return await createClient();
+    // Build the client OUTSIDE step() so we never put the actual SupabaseClient
+    // object into the response — it contains circular references (mfa.webauthn.
+    // client) that crash JSON.stringify.
+    let client: Awaited<ReturnType<typeof createClient>>;
+    const createClientStep = await step<true>(async () => {
+      client = await createClient();
+      return true;
     });
 
-    if (!supabase.ok) {
+    if (!createClientStep.ok) {
       return NextResponse.json(
-        { stage: "createClient", ...supabase },
+        { stage: "createClient", ...createClientStep },
         { status: 500 },
       );
     }
 
-    const client = supabase.result as Awaited<ReturnType<typeof createClient>>;
-
     const auth = await step(async () => {
-      const { data, error } = await client.auth.getUser();
+      const { data, error } = await client!.auth.getUser();
       if (error) throw error;
       return {
         hasUser: !!data.user,
@@ -55,7 +58,7 @@ export async function GET() {
 
     const profile = await step(async () => {
       if (!userId) return { skipped: "no userId" };
-      const { data, error } = await client
+      const { data, error } = await client!
         .from("profiles")
         .select("id, email, full_name, role, monthly_capacity_hours")
         .eq("id", userId)
@@ -80,7 +83,7 @@ export async function GET() {
       const results: Record<string, number | string> = {};
       for (const name of tableNames) {
         try {
-          const { count, error } = await client
+          const { count, error } = await client!
             .from(name)
             .select("id", { count: "exact", head: true });
           results[name] = error ? `error: ${error.message}` : (count ?? -1);
@@ -99,7 +102,7 @@ export async function GET() {
           ref: process.env.VERCEL_GIT_COMMIT_REF ?? "unknown",
         },
         steps: {
-          createClient: supabase,
+          createClient: createClientStep,
           auth,
           profile,
           counts,
