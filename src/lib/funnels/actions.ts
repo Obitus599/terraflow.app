@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import {
-  FUNNEL_CHANNELS,
   funnelSchema,
   stageSchema,
   type FunnelInput,
@@ -381,5 +380,3 @@ export async function moveRunToStage(
   revalidatePath(`/funnels/${run.funnel_id}`);
   return { ok: true };
 }
-
-export const _internal = { FUNNEL_CHANNELS };
