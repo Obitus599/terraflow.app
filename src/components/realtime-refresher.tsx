@@ -16,6 +16,9 @@ const REALTIME_TABLES = [
   "meetings",
   "apollo_sequences",
   "apollo_email_accounts",
+  "funnels",
+  "funnel_stages",
+  "funnel_runs",
 ] as const;
 
 /**

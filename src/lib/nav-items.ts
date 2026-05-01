@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,6 +28,7 @@ const ALL_ITEMS: NavItem[] = [
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/pipeline", label: "Pipeline", icon: GitFork },
+  { href: "/funnels", label: "Funnels", icon: Workflow },
   { href: "/clients", label: "Clients", icon: Building2 },
   { href: "/revenue", label: "Revenue", icon: TrendingUp },
   { href: "/cash-flow", label: "Cash flow", icon: Wallet },

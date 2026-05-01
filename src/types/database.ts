@@ -392,6 +392,214 @@ export type Database = {
           },
         ]
       }
+      funnel_runs: {
+        Row: {
+          created_at: string
+          current_stage_id: string | null
+          ended_at: string | null
+          funnel_id: string
+          id: string
+          outcome: string
+          pipeline_deal_id: string | null
+          started_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_stage_id?: string | null
+          ended_at?: string | null
+          funnel_id: string
+          id?: string
+          outcome?: string
+          pipeline_deal_id?: string | null
+          started_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_stage_id?: string | null
+          ended_at?: string | null
+          funnel_id?: string
+          id?: string
+          outcome?: string
+          pipeline_deal_id?: string | null
+          started_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funnel_runs_current_stage_id_fkey"
+            columns: ["current_stage_id"]
+            isOneToOne: false
+            referencedRelation: "funnel_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funnel_runs_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "funnels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funnel_runs_pipeline_deal_id_fkey"
+            columns: ["pipeline_deal_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funnel_stage_transitions: {
+        Row: {
+          actor_id: string | null
+          from_stage_id: string | null
+          funnel_run_id: string
+          id: string
+          to_stage_id: string | null
+          transitioned_at: string
+        }
+        Insert: {
+          actor_id?: string | null
+          from_stage_id?: string | null
+          funnel_run_id: string
+          id?: string
+          to_stage_id?: string | null
+          transitioned_at?: string
+        }
+        Update: {
+          actor_id?: string | null
+          from_stage_id?: string | null
+          funnel_run_id?: string
+          id?: string
+          to_stage_id?: string | null
+          transitioned_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funnel_stage_transitions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funnel_stage_transitions_from_stage_id_fkey"
+            columns: ["from_stage_id"]
+            isOneToOne: false
+            referencedRelation: "funnel_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funnel_stage_transitions_funnel_run_id_fkey"
+            columns: ["funnel_run_id"]
+            isOneToOne: false
+            referencedRelation: "funnel_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funnel_stage_transitions_to_stage_id_fkey"
+            columns: ["to_stage_id"]
+            isOneToOne: false
+            referencedRelation: "funnel_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funnel_stages: {
+        Row: {
+          created_at: string
+          funnel_id: string
+          id: string
+          is_terminal_lost: boolean
+          is_terminal_won: boolean
+          name: string
+          sort_order: number
+          target_conversion_pct: number
+          target_days: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          funnel_id: string
+          id?: string
+          is_terminal_lost?: boolean
+          is_terminal_won?: boolean
+          name: string
+          sort_order: number
+          target_conversion_pct?: number
+          target_days?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          funnel_id?: string
+          id?: string
+          is_terminal_lost?: boolean
+          is_terminal_won?: boolean
+          name?: string
+          sort_order?: number
+          target_conversion_pct?: number
+          target_days?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funnel_stages_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "funnels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funnels: {
+        Row: {
+          archived: boolean
+          channel: string
+          created_at: string
+          description: string | null
+          id: string
+          is_template: boolean
+          name: string
+          owner_id: string | null
+          template_slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived?: boolean
+          channel: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_template?: boolean
+          name: string
+          owner_id?: string | null
+          template_slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived?: boolean
+          channel?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_template?: boolean
+          name?: string
+          owner_id?: string | null
+          template_slug?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funnels_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           attendees: string | null
