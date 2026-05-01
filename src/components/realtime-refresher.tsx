@@ -12,6 +12,7 @@ const REALTIME_TABLES = [
   "cash_flow_entries",
   "cold_email_entries",
   "clients",
+  "client_documents",
   "bank_balance",
   "meetings",
   "apollo_sequences",

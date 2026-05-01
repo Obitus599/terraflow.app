@@ -19,6 +19,11 @@ import { formatAed } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
+import {
+  DocumentsTab,
+  type DocRow,
+} from "./_components/documents-tab";
+
 const HEALTH_DOT: Record<string, string> = {
   green: "bg-success",
   yellow: "bg-warning",
@@ -49,6 +54,8 @@ export default async function ClientDetailPage({
     { data: tasks },
     { data: revenue },
     { data: profile },
+    { data: documents },
+    { data: profiles },
   ] = await Promise.all([
     supabase
       .from("clients")
@@ -74,6 +81,14 @@ export default async function ClientDetailPage({
       .select("role")
       .eq("id", user!.id)
       .maybeSingle(),
+    supabase
+      .from("client_documents")
+      .select(
+        "id, category, name, size_bytes, mime_type, uploaded_by, created_at",
+      )
+      .eq("client_id", id)
+      .order("created_at", { ascending: false }),
+    supabase.from("profiles").select("id, full_name"),
   ]);
 
   if (!client) notFound();
@@ -84,6 +99,22 @@ export default async function ClientDetailPage({
     (sum, r) => sum + (r.amount_aed ?? 0),
     0,
   );
+
+  const namesById = new Map(
+    (profiles ?? []).map((p) => [p.id, p.full_name] as const),
+  );
+  const docRows: DocRow[] = (documents ?? []).map((d) => ({
+    id: d.id,
+    category: d.category,
+    name: d.name,
+    size_bytes: Number(d.size_bytes),
+    mime_type: d.mime_type,
+    uploaded_by: d.uploaded_by,
+    created_at: d.created_at,
+    uploader_name: d.uploaded_by
+      ? (namesById.get(d.uploaded_by) ?? null)
+      : null,
+  }));
 
   return (
     <>
@@ -152,6 +183,9 @@ export default async function ClientDetailPage({
             </TabsTrigger>
             <TabsTrigger value="revenue">
               Revenue {revenue?.length ? `· ${revenue.length}` : ""}
+            </TabsTrigger>
+            <TabsTrigger value="documents">
+              Documents {docRows.length ? `· ${docRows.length}` : ""}
             </TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
           </TabsList>
@@ -224,6 +258,15 @@ export default async function ClientDetailPage({
             ) : (
               <Empty label="No revenue logged for this client yet." />
             )}
+          </TabsContent>
+
+          <TabsContent value="documents" className="mt-6">
+            <DocumentsTab
+              clientId={client.id}
+              documents={docRows}
+              currentUserId={user!.id}
+              isAdmin={isAdmin}
+            />
           </TabsContent>
 
           <TabsContent value="notes" className="mt-6 space-y-4">
